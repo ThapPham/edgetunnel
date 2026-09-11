@@ -349,7 +349,7 @@ export default {
 						const protocolType = ((url.searchParams.has('surge') || ua.includes('surge')) && config_JSON.协议类型 !== 'ss') ? 'tro' + 'jan' : config_JSON.协议类型;
 						let subscriptionContent = '';
 						if (subscriptionType === 'mixed') {
-							const tlsFragmentParams = config_JSON.tlsFragment == 'Shadowrocket' ? `&fragment=${encodeURIComponent('1,40-60,30-50,tlshello')}` : config_JSON.tlsFragment == 'Happ' ? `&fragment=${encodeURIComponent('3,1,tlshello')}` : '';
+							const tlsFragmentParams = config_JSON.TLS分片 == 'Shadowrocket' ? `&fragment=${encodeURIComponent('1,40-60,30-50,tlshello')}` : config_JSON.TLS分片 == 'Happ' ? `&fragment=${encodeURIComponent('3,1,tlshello')}` : '';
 							let fullPreferredIp = [], otherNodesLink = '', reverseProxyIpPool = [];
 
 							if (!url.searchParams.has('sub') && config_JSON.优选订阅生成.local) { // Generate subscription locally
@@ -5609,7 +5609,7 @@ async function readConfigJson(env, hostname, userID, UA = "Mozilla/5.0", resetCo
 		gRPCUserAgent: UA,
 		跳过证书验证: false,
 		启用0RTT: false,
-		tlsFragment: null,
+		TLS分片: null,
 		随机路径: false,
 		ECH: false,
 		ECHConfig: {
@@ -5780,8 +5780,8 @@ async function readConfigJson(env, hostname, userID, UA = "Mozilla/5.0", resetCo
 	const finalQueryPart = reverseProxyQueryParam ? (queryPart ? queryPart + '&' + reverseProxyQueryParam : '?' + reverseProxyQueryParam) : queryPart;
 	config_JSON.完整节点路径 = (pathPart || '/') + (pathPart && pathReverseProxyParam ? '/' : '') + pathReverseProxyParam + finalQueryPart + (config_JSON.启用0RTT ? (finalQueryPart ? '&' : '?') + 'ed=2560' : '');
 
-	if (!config_JSON.tlsFragment && config_JSON.tlsFragment !== null) config_JSON.tlsFragment = null;
-	const tlsFragmentParams = config_JSON.tlsFragment == 'Shadowrocket' ? `&fragment=${encodeURIComponent('1,40-60,30-50,tlshello')}` : config_JSON.tlsFragment == 'Happ' ? `&fragment=${encodeURIComponent('3,1,tlshello')}` : '';
+	if (!config_JSON.TLS分片 && config_JSON.TLS分片 !== null) config_JSON.TLS分片 = null;
+	const tlsFragmentParams = config_JSON.TLS分片 == 'Shadowrocket' ? `&fragment=${encodeURIComponent('1,40-60,30-50,tlshello')}` : config_JSON.TLS分片 == 'Happ' ? `&fragment=${encodeURIComponent('3,1,tlshello')}` : '';
 	if (!config_JSON.Fingerprint) config_JSON.Fingerprint = "chrome";
 	if (!config_JSON.ECH) config_JSON.ECH = false;
 	if (!config_JSON.ECHConfig) config_JSON.ECHConfig = { DNS: Ali_DoH, SNI: ECH_SNI };
