@@ -288,7 +288,7 @@ export default {
 						return new Response(JSON.stringify(config_JSON, null, 2), { status: 200, headers: { 'Content-Type': 'application/json' } });
 					} else if (caseSensitiveAccessPath === 'admin/ADD.txt') {// Handle admin/ADD.txt request, return local preferred IP
 						let localPreferredIp = await env.KV.get('ADD.txt') || 'null';
-						if (localPreferredIp == 'null') localPreferredIp = (await generateRandomIp(request, config_JSON.preferredSubGeneration.localIpDatabase.randomCount, config_JSON.preferredSubGeneration.localIpDatabase.specifiedPort))[1];
+						if (localPreferredIp == 'null') localPreferredIp = (await generateRandomIp(request, config_JSON.优选订阅生成.本地IP库.随机数量, config_JSON.优选订阅生成.本地IP库.指定端口))[1];
 						return new Response(localPreferredIp, { status: 200, headers: { 'Content-Type': 'text/plain;charset=utf-8', 'asn': request.cf.asn } });
 					} else if (accessPath === 'admin/cf.json') {// CF config file
 						return new Response(JSON.stringify(request.cf, null, 2), { status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
@@ -318,7 +318,7 @@ export default {
 						const ua = UA.toLowerCase();
 						const responseHeaders = {
 							"content-type": "text/plain; charset=utf-8",
-							"Profile-Update-Interval": config_JSON.preferredSubGeneration.SUBUpdateTime,
+							"Profile-Update-Interval": config_JSON.优选订阅生成.SUBUpdateTime,
 							"Profile-web-page-url": url.protocol + '//' + url.host + '/admin',
 							"Cache-Control": "no-store",
 						};
@@ -345,18 +345,18 @@ export default {
 													? 'loon'
 													: 'mixed';
 
-						if (!ua.includes('mozilla')) responseHeaders["Content-Disposition"] = `attachment; filename*=utf-8''${encodeURIComponent(config_JSON.preferredSubGeneration.SUBNAME)}`;
-						const protocolType = ((url.searchParams.has('surge') || ua.includes('surge')) && config_JSON.protocolType !== 'ss') ? 'tro' + 'jan' : config_JSON.protocolType;
+						if (!ua.includes('mozilla')) responseHeaders["Content-Disposition"] = `attachment; filename*=utf-8''${encodeURIComponent(config_JSON.优选订阅生成.SUBNAME)}`;
+						const protocolType = ((url.searchParams.has('surge') || ua.includes('surge')) && config_JSON.协议类型 !== 'ss') ? 'tro' + 'jan' : config_JSON.协议类型;
 						let subscriptionContent = '';
 						if (subscriptionType === 'mixed') {
 							const tlsFragmentParams = config_JSON.tlsFragment == 'Shadowrocket' ? `&fragment=${encodeURIComponent('1,40-60,30-50,tlshello')}` : config_JSON.tlsFragment == 'Happ' ? `&fragment=${encodeURIComponent('3,1,tlshello')}` : '';
 							let fullPreferredIp = [], otherNodesLink = '', reverseProxyIpPool = [];
 
-							if (!url.searchParams.has('sub') && config_JSON.preferredSubGeneration.local) { // Generate subscription locally
-								const fullPreferredList = config_JSON.preferredSubGeneration.localIpDatabase.randomIp ? (
-									await generateRandomIp(request, config_JSON.preferredSubGeneration.localIpDatabase.randomCount, config_JSON.preferredSubGeneration.localIpDatabase.specifiedPort)
+							if (!url.searchParams.has('sub') && config_JSON.优选订阅生成.local) { // Generate subscription locally
+								const fullPreferredList = config_JSON.优选订阅生成.本地IP库.随机IP ? (
+									await generateRandomIp(request, config_JSON.优选订阅生成.本地IP库.随机数量, config_JSON.优选订阅生成.本地IP库.指定端口)
 								)[0] : await env.KV.get('ADD.txt') ? await organizeIntoArray(await env.KV.get('ADD.txt')) : (
-									await generateRandomIp(request, config_JSON.preferredSubGeneration.localIpDatabase.randomCount, config_JSON.preferredSubGeneration.localIpDatabase.specifiedPort)
+									await generateRandomIp(request, config_JSON.优选订阅生成.本地IP库.随机数量, config_JSON.优选订阅生成.本地IP库.指定端口)
 								)[0];
 								const preferredApi = [], preferredIp = [], otherNodes = [];
 								for (const element of fullPreferredList) {
@@ -392,7 +392,7 @@ export default {
 								reverseProxyIpPool = requestPreferredApiContent[3] || [];
 								fullPreferredIp = [...new Set(preferredIp.concat(preferredApiIp))];
 							} else { // preferredSubGenerator
-								let preferredSubGeneratorHost = url.searchParams.get('sub') || config_JSON.preferredSubGeneration.SUB;
+								let preferredSubGeneratorHost = url.searchParams.get('sub') || config_JSON.优选订阅生成.SUB;
 								const [preferredGeneratorIpArray, preferredGeneratorOtherNodes] = await getPreferredSubGeneratorData(preferredSubGeneratorHost);
 								fullPreferredIp = fullPreferredIp.concat(preferredGeneratorIpArray);
 								otherNodesLink += preferredGeneratorOtherNodes;
@@ -421,21 +421,21 @@ export default {
 									return null;
 								}
 
-								let fullNodePath = config_JSON.fullNodePath;
+								let fullNodePath = config_JSON.完整节点路径;
 
 								const chainProxyMatch = nodeRemark.match(/\$(socks5|http|https|turn|sstp):\/\/([^#\s]+)/i);
 								if (chainProxyMatch) {
 									try {
 										const proxyProtocol = chainProxyMatch[1].toLowerCase(), proxyParams = chainProxyMatch[2];
 										const chainProxyData = { type: proxyProtocol, ...getSocks5Account(proxyParams, getProxyDefaultPort(proxyProtocol)) };
-										fullNodePath = `/video/${base64SecretEncode(JSON.stringify(chainProxyData), userID) + (config_JSON.enableZeroRtt ? '?ed=2560' : '')}`;
+										fullNodePath = `/video/${base64SecretEncode(JSON.stringify(chainProxyData), userID) + (config_JSON.启用0RTT ? '?ed=2560' : '')}`;
 										nodeRemark = nodeRemark.replace(chainProxyMatch[0], '').trim() || nodeAddress;
 									} catch (error) {
 										console.warn(`[subscriptionContent] Chain proxy parsing failed, directive ignored: ${chainProxyMatch[0]} (${error && error.message ? error.message : error})`);
 									}
 								} else if (reverseProxyIpPool.length > 0) {
 									const matchedReverseProxyIp = reverseProxyIpPool.find(p => p.includes(nodeAddress));
-									if (matchedReverseProxyIp) fullNodePath = (`${config_JSON.PATH}/proxyip=${matchedReverseProxyIp}`).replace(/\/\//g, '/') + (config_JSON.enableZeroRtt ? '?ed=2560' : '');
+									if (matchedReverseProxyIp) fullNodePath = (`${config_JSON.PATH}/proxyip=${matchedReverseProxyIp}`).replace(/\/\//g, '/') + (config_JSON.启用0RTT ? '?ed=2560' : '');
 								}
 								if (isLoonOrSurge) fullNodePath = fullNodePath.replace(/,/g, '%2C');
 
@@ -445,16 +445,16 @@ export default {
 										const nonTlsPort = [80, 2052, 2082, 2086, 2095, 8080];
 										nodePort = String(nonTlsPort[tlsPort.indexOf(Number(nodePort))] ?? nodePort);
 									}
-									fullNodePath = (fullNodePath.includes('?') ? fullNodePath.replace('?', '?enc=' + config_JSON.SS.encryptionMethod + '&') : (fullNodePath + '?enc=' + config_JSON.SS.encryptionMethod)).replace(/([=,])/g, '\\$1');
+									fullNodePath = (fullNodePath.includes('?') ? fullNodePath.replace('?', '?enc=' + config_JSON.SS.加密方式 + '&') : (fullNodePath + '?enc=' + config_JSON.SS.加密方式)).replace(/([=,])/g, '\\$1');
 									if (!isSubConverterRequest) fullNodePath = fullNodePath + ';mux=0';
-									return `${protocolType}://${btoa(config_JSON.SS.encryptionMethod + ':00000000-0000-4000-8000-000000000000')}@${nodeAddress}:${nodePort}?plugin=v2${encodeURIComponent('ray-plugin;mode=websocket;host=example.com;path=' + (config_JSON.randomPath ? randomPath(fullNodePath) : fullNodePath) + (config_JSON.SS.TLS ? ';tls' : '')) + echLinkParams + tlsFragmentParams}#${encodeURIComponent(nodeRemark)}`;
+									return `${protocolType}://${btoa(config_JSON.SS.加密方式 + ':00000000-0000-4000-8000-000000000000')}@${nodeAddress}:${nodePort}?plugin=v2${encodeURIComponent('ray-plugin;mode=websocket;host=example.com;path=' + (config_JSON.随机路径 ? randomPath(fullNodePath) : fullNodePath) + (config_JSON.SS.TLS ? ';tls' : '')) + echLinkParams + tlsFragmentParams}#${encodeURIComponent(nodeRemark)}`;
 								} else {
 									const transportPathParamValue = getTransportPathParamValue(config_JSON, fullNodePath, asPreferredSubGenerator);
 									return `${protocolType}://00000000-0000-4000-8000-000000000000@${nodeAddress}:${nodePort}?security=tls&type=${transportProtocol + echLinkParams}&${domainFieldName}=example.com&fp=${config_JSON.Fingerprint}&sni=example.com&${pathFieldName}=${encodeURIComponent(transportPathParamValue) + tlsFragmentParams}&encryption=none&alpn=${encodeURIComponent(config_JSON.ALPN)}#${encodeURIComponent(nodeRemark)}`;
 								}
 							}).filter(item => item !== null).join('\n');
 						} else { // Subscription conversion
-							const subConverterUrl = `${config_JSON.subConverterConfig.SUBAPI}/sub?target=${subscriptionType}&url=${encodeURIComponent(url.protocol + '//' + url.host + '/sub?target=mixed&token=' + todaySubConverterBackendToken + '&cnIspCode=' + identifyCarrier(request) + (url.searchParams.has('sub') && url.searchParams.get('sub') != '' ? `&sub=${url.searchParams.get('sub')}` : ''))}&config=${encodeURIComponent(config_JSON.subConverterConfig.SUBCONFIG)}&emoji=${config_JSON.subConverterConfig.SUBEMOJI}&list=${config_JSON.subConverterConfig.SUBLIST}&scv=${config_JSON.skipCertVerify}&xudp=${config_JSON.subConverterConfig.XUDP}&udp=${config_JSON.subConverterConfig.UDP}&tls13=${config_JSON.subConverterConfig.TLS13}&append_type=${config_JSON.subConverterConfig.APPEND_TYPE}&sort=${config_JSON.subConverterConfig.SORT}`;
+							const subConverterUrl = `${config_JSON.订阅转换配置.SUBAPI}/sub?target=${subscriptionType}&url=${encodeURIComponent(url.protocol + '//' + url.host + '/sub?target=mixed&token=' + todaySubConverterBackendToken + '&cnIspCode=' + identifyCarrier(request) + (url.searchParams.has('sub') && url.searchParams.get('sub') != '' ? `&sub=${url.searchParams.get('sub')}` : ''))}&config=${encodeURIComponent(config_JSON.订阅转换配置.SUBCONFIG)}&emoji=${config_JSON.订阅转换配置.SUBEMOJI}&list=${config_JSON.订阅转换配置.SUBLIST}&scv=${config_JSON.跳过证书验证}&xudp=${config_JSON.订阅转换配置.XUDP}&udp=${config_JSON.订阅转换配置.UDP}&tls13=${config_JSON.订阅转换配置.TLS13}&append_type=${config_JSON.订阅转换配置.APPEND_TYPE}&sort=${config_JSON.订阅转换配置.SORT}`;
 							try {
 								const response = await fetch(subConverterUrl, { headers: { 'User-Agent': 'Subconverter for ' + subscriptionType + ' edge' + 'tunnel (https://github.com/' + signatureDictionary[1] + '/edge' + 'tunnel)' } });
 								if (response.ok) {
@@ -4791,7 +4791,7 @@ function base64SecretDecode(encoded, secret) {
 }
 
 function getTransportProtocolConfig(config = {}) {
-	const isGrpc = config.transportProtocol === 'grpc';
+	const isGrpc = config.传输协议 === 'grpc';
 	const { header: localPaddingHeader, key: localPaddingKey } = getXhttpPaddingFlag(config.UUID);
 	const xhttpObfuscationJson = {
 		"xPaddingObfsMode": true,
@@ -4801,15 +4801,15 @@ function getTransportProtocolConfig(config = {}) {
 		"xPaddingKey": localPaddingKey
 	};
 	return {
-		type: isGrpc ? (config.grpcMode === 'multi' ? 'grpc&mode=multi' : 'grpc&mode=gun') : (config.transportProtocol === 'xhttp' ? `xhttp&mode=stream-one&extra=${encodeURIComponent(JSON.stringify(xhttpObfuscationJson))}` : 'ws'),
+		type: isGrpc ? (config.gRPC模式 === 'multi' ? 'grpc&mode=multi' : 'grpc&mode=gun') : (config.传输协议 === 'xhttp' ? `xhttp&mode=stream-one&extra=${encodeURIComponent(JSON.stringify(xhttpObfuscationJson))}` : 'ws'),
 		pathFieldName: isGrpc ? 'serviceName' : 'path',
 		domainFieldName: isGrpc ? 'authority' : 'host'
 	};
 }
 
 function getTransportPathParamValue(config = {}, nodePath = '/', asPreferredSubGenerator = false) {
-	const pathValue = asPreferredSubGenerator ? '/' : (config.randomPath ? randomPath(nodePath) : nodePath);
-	if (config.transportProtocol !== 'grpc') return pathValue;
+	const pathValue = asPreferredSubGenerator ? '/' : (config.随机路径 ? randomPath(nodePath) : nodePath);
+	if (config.传输协议 !== 'grpc') return pathValue;
 	return pathValue.split('?')[0] || '/';
 }
 
@@ -4825,7 +4825,7 @@ function clashSubscriptionConfigHotPatch(clashRawSubscriptionContent, config_JSO
 	const ECH_DNS = config_JSON?.ECHConfig?.DNS;
 	const needsEchHandling = Boolean(uuid && echEnabled);
 	const gRPCUserAgent = (typeof config_JSON?.gRPCUserAgent === 'string' && config_JSON.gRPCUserAgent.trim()) ? config_JSON.gRPCUserAgent.trim() : null;
-	const needsGrpcHandling = config_JSON?.transportProtocol === "grpc" && Boolean(gRPCUserAgent);
+	const needsGrpcHandling = config_JSON?.传输协议 === "grpc" && Boolean(gRPCUserAgent);
 	const gRPCUserAgentYAML = gRPCUserAgent ? JSON.stringify(gRPCUserAgent) : null;
 	let clash_yaml = clashRawSubscriptionContent.replace(/mode:\s*Rule\b/g, 'mode: rule');
 
@@ -5316,20 +5316,20 @@ async function singboxSubscriptionConfigHotPatch(singboxRawSubscriptionContent, 
 
 function surgeSubscriptionConfigHotPatch(content, url, config_JSON) {
 	const eachLineContent = content.includes('\r\n') ? content.split('\r\n') : content.split('\n');
-	const fullNodePath = config_JSON.randomPath ? randomPath(config_JSON.fullNodePath) : config_JSON.fullNodePath;
+	const fullNodePath = config_JSON.随机路径 ? randomPath(config_JSON.完整节点路径) : config_JSON.完整节点路径;
 	let outputContent = "";
 	for (let x of eachLineContent) {
 		if (x.includes('= tro' + 'jan,') && !x.includes('ws=true') && !x.includes('ws-path=')) {
 			const host = x.split("sni=")[1].split(",")[0];
-			const contentToModify = `sni=${host}, skip-cert-verify=${config_JSON.skipCertVerify}`;
-			const correctedContent = `sni=${host}, skip-cert-verify=${config_JSON.skipCertVerify}, ws=true, ws-path=${fullNodePath.replace(/,/g, '%2C')}, ws-headers=Host:"${host}"`;
+			const contentToModify = `sni=${host}, skip-cert-verify=${config_JSON.跳过证书验证}`;
+			const correctedContent = `sni=${host}, skip-cert-verify=${config_JSON.跳过证书验证}, ws=true, ws-path=${fullNodePath.replace(/,/g, '%2C')}, ws-headers=Host:"${host}"`;
 			outputContent += x.replace(new RegExp(contentToModify, 'g'), correctedContent).replace("[", "").replace("]", "") + '\n';
 		} else {
 			outputContent += x + '\n';
 		}
 	}
 
-	outputContent = `#!MANAGED-CONFIG ${url} interval=${config_JSON.preferredSubGeneration.SUBUpdateTime * 60 * 60} strict=false` + outputContent.substring(outputContent.indexOf('\n'));
+	outputContent = `#!MANAGED-CONFIG ${url} interval=${config_JSON.优选订阅生成.SUBUpdateTime * 60 * 60} strict=false` + outputContent.substring(outputContent.indexOf('\n'));
 	return outputContent;
 }
 
@@ -5337,14 +5337,14 @@ async function requestLogRecord(env, request, accessIp, requestType = "Get_SUB",
 	try {
 		const currentTime = new Date();
 		const logContent = { TYPE: requestType, IP: accessIp, ASN: `AS${request.cf.asn || '0'} ${request.cf.asOrganization || 'Unknown'}`, CC: `${request.cf.country || 'N/A'} ${request.cf.city || 'N/A'}`, URL: request.url, UA: request.headers.get('User-Agent') || 'Unknown', TIME: currentTime.getTime() };
-		if (config_JSON.TG.enable) {
+		if (config_JSON.TG.启用) {
 			try {
 				const TG_TXT = await env.KV.get('tg.json');
 				const TG_JSON = JSON.parse(TG_TXT);
 				if (TG_JSON?.BotToken && TG_JSON?.ChatID) {
 					const requestTime = new Date(logContent.TIME).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
 					const requestUrl = new URL(logContent.URL);
-					const msg = `<b>#${config_JSON.preferredSubGeneration.SUBNAME} Log Notification</b>\n\n` +
+					const msg = `<b>#${config_JSON.优选订阅生成.SUBNAME} Log Notification</b>\n\n` +
 						`📌 <b>type: </b>#${logContent.TYPE}\n` +
 						`🌐 <b>IP: </b><code>${logContent.IP}</code>\n` +
 						`📍 <b>Location: </b>${logContent.CC}\n` +
@@ -5603,37 +5603,37 @@ async function readConfigJson(env, hostname, userID, UA = "Mozilla/5.0", resetCo
 		UUID: userID,
 		PATH: "/",
 		ALPN: "",
-		protocolType: "v" + "le" + "ss",
-		transportProtocol: "ws",
-		grpcMode: "gun",
+		协议类型: "v" + "le" + "ss",
+		传输协议: "ws",
+		gRPC模式: "gun",
 		gRPCUserAgent: UA,
-		skipCertVerify: false,
-		enableZeroRtt: false,
+		跳过证书验证: false,
+		启用0RTT: false,
 		tlsFragment: null,
-		randomPath: false,
+		随机路径: false,
 		ECH: false,
 		ECHConfig: {
 			DNS: Ali_DoH,
 			SNI: ECH_SNI,
 		},
 		SS: {
-			encryptionMethod: "aes-128-gcm",
+			加密方式: "aes-128-gcm",
 			TLS: true,
 		},
 		Fingerprint: "chrome",
-		preferredSubGeneration: {
+		优选订阅生成: {
 			local: true, // true: based on local preferred addresses  false: preferredSubGenerator
-			localIpDatabase: {
-				randomIp: true, // takes effect when randomIp is true, enables the random IP count; otherwise uses ADD.txt from KV
-				randomCount: 16,
-				specifiedPort: -1,
+			本地IP库: {
+				随机IP: true, // takes effect when randomIp is true, enables the random IP count; otherwise uses ADD.txt from KV
+				随机数量: 16,
+				指定端口: -1,
 			},
 			SUB: null,
 			SUBNAME: "edge" + "tunnel",
 			SUBUpdateTime: 3, // subscription update interval (hours)
 			TOKEN: await MD5MD5(hostname + userID),
 		},
-		subConverterConfig: {
+		订阅转换配置: {
 			SUBAPI: `https://SUBAPI.${signatureDictionary[1]}ssss.net`,
 			SUBCONFIG: `https://raw.githubusercontent.com/${signatureDictionary[1]}/ACL4SSR/refs/heads/main/Clash/config/ACL4SSR_Online_Mini_MultiMode_CF.ini`,
 			SUBEMOJI: false,
@@ -5644,40 +5644,40 @@ async function readConfigJson(env, hostname, userID, UA = "Mozilla/5.0", resetCo
 			APPEND_TYPE: false, // insert node type
 			SORT: false, // basic node sorting
 		},
-		reverseProxy: {
+		反代: {
 			[_p]: "auto",
 			SOCKS5: {
-				enable: null,
-				global: false,
-				account: '',
-				whitelist: socks5Whitelist,
+				启用: null,
+				全局: false,
+				账号: '',
+				白名单: socks5Whitelist,
 			},
-			pathTemplate: {
+			路径模板: {
 				[_p]: "proxyip=" + placeholder,
 				SOCKS5: {
-					global: "socks5://" + placeholder,
-					standard: "socks5=" + placeholder
+					全局: "socks5://" + placeholder,
+					标准: "socks5=" + placeholder
 				},
 				HTTP: {
-					global: "http://" + placeholder,
-					standard: "http=" + placeholder
+					全局: "http://" + placeholder,
+					标准: "http=" + placeholder
 				},
 				HTTPS: {
-					global: "https://" + placeholder,
-					standard: "https=" + placeholder
+					全局: "https://" + placeholder,
+					标准: "https=" + placeholder
 				},
 				TURN: {
-					global: "turn://" + placeholder,
-					standard: "turn=" + placeholder
+					全局: "turn://" + placeholder,
+					标准: "turn=" + placeholder
 				},
 				SSTP: {
-					global: "sstp://" + placeholder,
-					standard: "sstp=" + placeholder
+					全局: "sstp://" + placeholder,
+					标准: "sstp=" + placeholder
 				},
 			},
 		},
 		TG: {
-			enable: false,
+			启用: false,
 			BotToken: null,
 			ChatID: null,
 		},
@@ -5710,61 +5710,61 @@ async function readConfigJson(env, hostname, userID, UA = "Mozilla/5.0", resetCo
 		config_JSON = defaultConfigJson;
 	}
 
-	if (!config_JSON.subConverterConfig.SUBLIST) config_JSON.subConverterConfig.SUBLIST = false;
-	if (!config_JSON.subConverterConfig.UDP) config_JSON.subConverterConfig.UDP = false;
-	if (!config_JSON.subConverterConfig.XUDP) config_JSON.subConverterConfig.XUDP = false;
-	if (!config_JSON.subConverterConfig.TLS13) config_JSON.subConverterConfig.TLS13 = false;
-	if (!config_JSON.subConverterConfig.APPEND_TYPE) config_JSON.subConverterConfig.APPEND_TYPE = false;
-	if (!config_JSON.subConverterConfig.SORT) config_JSON.subConverterConfig.SORT = false;
+	if (!config_JSON.订阅转换配置.SUBLIST) config_JSON.订阅转换配置.SUBLIST = false;
+	if (!config_JSON.订阅转换配置.UDP) config_JSON.订阅转换配置.UDP = false;
+	if (!config_JSON.订阅转换配置.XUDP) config_JSON.订阅转换配置.XUDP = false;
+	if (!config_JSON.订阅转换配置.TLS13) config_JSON.订阅转换配置.TLS13 = false;
+	if (!config_JSON.订阅转换配置.APPEND_TYPE) config_JSON.订阅转换配置.APPEND_TYPE = false;
+	if (!config_JSON.订阅转换配置.SORT) config_JSON.订阅转换配置.SORT = false;
 	if (!config_JSON.gRPCUserAgent) config_JSON.gRPCUserAgent = UA;
 	config_JSON.HOST = host;
 	if (!config_JSON.HOSTS) config_JSON.HOSTS = [hostname];
 	if (env.HOST) config_JSON.HOSTS = (await organizeIntoArray(env.HOST)).map(h => h.toLowerCase().replace(/^https?:\/\//, '').split('/')[0].split(':')[0]);
 	config_JSON.UUID = userID;
-	if (!config_JSON.randomPath) config_JSON.randomPath = false;
-	if (!config_JSON.enableZeroRtt) config_JSON.enableZeroRtt = false;
+	if (!config_JSON.随机路径) config_JSON.随机路径 = false;
+	if (!config_JSON.启用0RTT) config_JSON.启用0RTT = false;
 
 	if (env.PATH) config_JSON.PATH = env.PATH.startsWith('/') ? env.PATH : '/' + env.PATH;
 	else if (!config_JSON.PATH) config_JSON.PATH = '/';
 	if (!config_JSON.ALPN) config_JSON.ALPN = "";
 
-	if (!config_JSON.grpcMode) config_JSON.grpcMode = 'gun';
-	if (!config_JSON.SS) config_JSON.SS = { encryptionMethod: "aes-128-gcm", TLS: false };
+	if (!config_JSON.gRPC模式) config_JSON.gRPC模式 = 'gun';
+	if (!config_JSON.SS) config_JSON.SS = { 加密方式: "aes-128-gcm", TLS: false };
 
-	if (!config_JSON.reverseProxy.pathTemplate?.[_p]) {
-		config_JSON.reverseProxy.pathTemplate = {
+	if (!config_JSON.反代.路径模板?.[_p]) {
+		config_JSON.反代.路径模板 = {
 			[_p]: "proxyip=" + placeholder,
 			SOCKS5: {
-				global: "socks5://" + placeholder,
-				standard: "socks5=" + placeholder
+				全局: "socks5://" + placeholder,
+				标准: "socks5=" + placeholder
 			},
 			HTTP: {
-				global: "http://" + placeholder,
-				standard: "http=" + placeholder
+				全局: "http://" + placeholder,
+				标准: "http=" + placeholder
 			},
 			HTTPS: {
-				global: "https://" + placeholder,
-				standard: "https=" + placeholder
+				全局: "https://" + placeholder,
+				标准: "https=" + placeholder
 			},
 			TURN: {
-				global: "turn://" + placeholder,
-				standard: "turn=" + placeholder
+				全局: "turn://" + placeholder,
+				标准: "turn=" + placeholder
 			},
 			SSTP: {
-				global: "sstp://" + placeholder,
-				standard: "sstp=" + placeholder
+				全局: "sstp://" + placeholder,
+				标准: "sstp=" + placeholder
 			},
 		};
 	}
-	if (!config_JSON.reverseProxy.pathTemplate.HTTPS) config_JSON.reverseProxy.pathTemplate.HTTPS = { global: "https://" + placeholder, standard: "https=" + placeholder };
-	if (!config_JSON.reverseProxy.pathTemplate.TURN) config_JSON.reverseProxy.pathTemplate.TURN = { global: "turn://" + placeholder, standard: "turn=" + placeholder };
-	if (!config_JSON.reverseProxy.pathTemplate.SSTP) config_JSON.reverseProxy.pathTemplate.SSTP = { global: "sstp://" + placeholder, standard: "sstp=" + placeholder };
+	if (!config_JSON.反代.路径模板.HTTPS) config_JSON.反代.路径模板.HTTPS = { 全局: "https://" + placeholder, 标准: "https=" + placeholder };
+	if (!config_JSON.反代.路径模板.TURN) config_JSON.反代.路径模板.TURN = { 全局: "turn://" + placeholder, 标准: "turn=" + placeholder };
+	if (!config_JSON.反代.路径模板.SSTP) config_JSON.反代.路径模板.SSTP = { 全局: "sstp://" + placeholder, 标准: "sstp=" + placeholder };
 
-	const proxyConfig = config_JSON.reverseProxy.pathTemplate[config_JSON.reverseProxy.SOCKS5.enable?.toUpperCase()];
+	const proxyConfig = config_JSON.反代.路径模板[config_JSON.反代.SOCKS5.启用?.toUpperCase()];
 
 	let pathReverseProxyParam = '';
-	if (proxyConfig && config_JSON.reverseProxy.SOCKS5.account) pathReverseProxyParam = (config_JSON.reverseProxy.SOCKS5.global ? proxyConfig.global : proxyConfig.standard).replace(placeholder, config_JSON.reverseProxy.SOCKS5.account);
-	else if (config_JSON.reverseProxy[_p] !== 'auto') pathReverseProxyParam = config_JSON.reverseProxy.pathTemplate[_p].replace(placeholder, config_JSON.reverseProxy[_p]);
+	if (proxyConfig && config_JSON.反代.SOCKS5.账号) pathReverseProxyParam = (config_JSON.反代.SOCKS5.全局 ? proxyConfig.全局 : proxyConfig.标准).replace(placeholder, config_JSON.反代.SOCKS5.账号);
+	else if (config_JSON.反代[_p] !== 'auto') pathReverseProxyParam = config_JSON.反代.路径模板[_p].replace(placeholder, config_JSON.反代[_p]);
 
 	let reverseProxyQueryParam = '';
 	if (pathReverseProxyParam.includes('?')) {
@@ -5778,7 +5778,7 @@ async function readConfigJson(env, hostname, userID, UA = "Mozilla/5.0", resetCo
 	const [pathPart, ...queryArray] = normalizedPath.split('?');
 	const queryPart = queryArray.length ? '?' + queryArray.join('?') : '';
 	const finalQueryPart = reverseProxyQueryParam ? (queryPart ? queryPart + '&' + reverseProxyQueryParam : '?' + reverseProxyQueryParam) : queryPart;
-	config_JSON.fullNodePath = (pathPart || '/') + (pathPart && pathReverseProxyParam ? '/' : '') + pathReverseProxyParam + finalQueryPart + (config_JSON.enableZeroRtt ? (finalQueryPart ? '&' : '?') + 'ed=2560' : '');
+	config_JSON.完整节点路径 = (pathPart || '/') + (pathPart && pathReverseProxyParam ? '/' : '') + pathReverseProxyParam + finalQueryPart + (config_JSON.启用0RTT ? (finalQueryPart ? '&' : '?') + 'ed=2560' : '');
 
 	if (!config_JSON.tlsFragment && config_JSON.tlsFragment !== null) config_JSON.tlsFragment = null;
 	const tlsFragmentParams = config_JSON.tlsFragment == 'Shadowrocket' ? `&fragment=${encodeURIComponent('1,40-60,30-50,tlshello')}` : config_JSON.tlsFragment == 'Happ' ? `&fragment=${encodeURIComponent('3,1,tlshello')}` : '';
@@ -5787,14 +5787,14 @@ async function readConfigJson(env, hostname, userID, UA = "Mozilla/5.0", resetCo
 	if (!config_JSON.ECHConfig) config_JSON.ECHConfig = { DNS: Ali_DoH, SNI: ECH_SNI };
 	const echLinkParams = config_JSON.ECH ? `&ech=${encodeURIComponent((config_JSON.ECHConfig.SNI ? config_JSON.ECHConfig.SNI + '+' : '') + config_JSON.ECHConfig.DNS)}` : '';
 	const { type: transportProtocol, pathFieldName, domainFieldName } = getTransportProtocolConfig(config_JSON);
-	const transportPathParamValue = getTransportPathParamValue(config_JSON, config_JSON.fullNodePath);
-	config_JSON.LINK = config_JSON.protocolType === 'ss'
-		? `${config_JSON.protocolType}://${btoa(config_JSON.SS.encryptionMethod + ':' + userID)}@${host}:${config_JSON.SS.TLS ? '443' : '80'}?plugin=v2${encodeURIComponent(`ray-plugin;mode=websocket;host=${host};path=${((config_JSON.fullNodePath.includes('?') ? config_JSON.fullNodePath.replace('?', '?enc=' + config_JSON.SS.encryptionMethod + '&') : (config_JSON.fullNodePath + '?enc=' + config_JSON.SS.encryptionMethod)) + (config_JSON.SS.TLS ? ';tls' : ''))};mux=0`) + echLinkParams}#${encodeURIComponent(config_JSON.preferredSubGeneration.SUBNAME)}`
-		: `${config_JSON.protocolType}://${userID}@${host}:443?security=tls&type=${transportProtocol + echLinkParams}&${domainFieldName}=${host}&fp=${config_JSON.Fingerprint}&sni=${host}&${pathFieldName}=${encodeURIComponent(transportPathParamValue) + tlsFragmentParams}&encryption=none#${encodeURIComponent(config_JSON.preferredSubGeneration.SUBNAME)}`;
-	config_JSON.preferredSubGeneration.TOKEN = await MD5MD5(hostname + userID);
+	const transportPathParamValue = getTransportPathParamValue(config_JSON, config_JSON.完整节点路径);
+	config_JSON.LINK = config_JSON.协议类型 === 'ss'
+		? `${config_JSON.协议类型}://${btoa(config_JSON.SS.加密方式 + ':' + userID)}@${host}:${config_JSON.SS.TLS ? '443' : '80'}?plugin=v2${encodeURIComponent(`ray-plugin;mode=websocket;host=${host};path=${((config_JSON.完整节点路径.includes('?') ? config_JSON.完整节点路径.replace('?', '?enc=' + config_JSON.SS.加密方式 + '&') : (config_JSON.完整节点路径 + '?enc=' + config_JSON.SS.加密方式)) + (config_JSON.SS.TLS ? ';tls' : ''))};mux=0`) + echLinkParams}#${encodeURIComponent(config_JSON.优选订阅生成.SUBNAME)}`
+		: `${config_JSON.协议类型}://${userID}@${host}:443?security=tls&type=${transportProtocol + echLinkParams}&${domainFieldName}=${host}&fp=${config_JSON.Fingerprint}&sni=${host}&${pathFieldName}=${encodeURIComponent(transportPathParamValue) + tlsFragmentParams}&encryption=none#${encodeURIComponent(config_JSON.优选订阅生成.SUBNAME)}`;
+	config_JSON.优选订阅生成.TOKEN = await MD5MD5(hostname + userID);
 
 	const initTgJson = { BotToken: null, ChatID: null };
-	config_JSON.TG = { enable: config_JSON.TG.enable ? config_JSON.TG.enable : false, ...initTgJson };
+	config_JSON.TG = { 启用: config_JSON.TG.启用 ? config_JSON.TG.启用 : false, ...initTgJson };
 	try {
 		const TG_TXT = await env.KV.get('tg.json');
 		if (!TG_TXT) {
@@ -5838,7 +5838,7 @@ async function readConfigJson(env, hostname, userID, UA = "Mozilla/5.0", resetCo
 		console.error(`Error reading cf.json: ${error.message}`);
 	}
 
-	config_JSON.loadTime = (performance.now() - initStartTime).toFixed(2) + 'ms';
+	config_JSON.加载时间 = (performance.now() - initStartTime).toFixed(2) + 'ms';
 	return config_JSON;
 }
 
