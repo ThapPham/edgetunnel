@@ -648,7 +648,7 @@ async function handleXhttpRequest(request, yourUUID, reverseProxyContext = {}) {
 
 	let socket;
 	try {
-		socket = await forwardataTCP(firstPacket.hostname, firstPacket.port, firstPacket.rawData, placeholderWs, firstPacket.respHeader, remoteConnWrapper, yourUUID, request, reverseProxyContext, firstPacket.protocol === 'trojan', firstPacket.rawData, true);
+		socket = await forwardataTCP(firstPacket.hostname, firstPacket.port, firstPacket.rawData, placeholderWs, firstPacket.respHeader, remoteConnWrapper, yourUUID, request, reverseProxyContext, firstPacket.protocol === 'trojan', firstPacket.originalRawData, true);
 	} catch (err) {
 		log(`[xhttp-Pipe] connection failed: ${err?.message || err}`);
 		cleanup(err);
@@ -744,7 +744,7 @@ function handleXhttpUdpRequest(firstPacket, reader, request, reverseProxyContext
 				if (firstPacket.protocol === 'trojan') {
 					trojanUdpContext.targetHost = firstPacket.hostname;
 					trojanUdpContext.targetPort = firstPacket.port;
-					if (trojanUdpContext.reverseProxyAddress) await forwardTrojanUdpData(firstPacket.rawData, xhttpBridge, trojanUdpContext, request);
+					if (trojanUdpContext.reverseProxyAddress) await forwardTrojanUdpData(firstPacket.originalRawData, xhttpBridge, trojanUdpContext, request);
 				}
 				if (!(firstPacket.protocol === 'trojan' && trojanUdpContext.reverseProxyAddress) && firstPacket.rawData?.byteLength) {
 					if (firstPacket.protocol === 'trojan') await forwardTrojanUdpData(firstPacket.rawData, xhttpBridge, trojanUdpContext, request);
@@ -871,7 +871,7 @@ async function readXhttpFirstPacket(reader, token) {
 				isUDP: cmd === 2,
 				rawData: data.subarray(headerLen),
 				respHeader: new Uint8Array([data[0], 0]),
-				rawData: null,
+				originalRawData: null,
 			}
 		};
 	};
@@ -932,7 +932,7 @@ async function readXhttpFirstPacket(reader, token) {
 				port,
 				isUDP,
 				rawData: data.subarray(dataOffset),
-				rawData: data,
+				originalRawData: data,
 				respHeader: null,
 			}
 		};
@@ -4898,7 +4898,7 @@ function clashSubscriptionConfigHotPatch(clashRawSubscriptionContent, config_JSO
 		return nodeText.replace(/\}(\s*)$/, `, grpc-opts: {grpc-user-agent: ${gRPCUserAgentYAML}}}$1`);
 	};
 	const addBlockFormatGrpcUserAgent = (nodeLines, topLevelIndent) => {
-		const topLevelIndent = ' '.repeat(topLevelIndent);
+		const topLevelIndentStr = ' '.repeat(topLevelIndent);
 		let grpcOptsIndex = -1;
 		for (let idx = 0; idx < nodeLines.length; idx++) {
 			const line = nodeLines[idx];
@@ -4918,7 +4918,7 @@ function clashSubscriptionConfigHotPatch(clashRawSubscriptionContent, config_JSO
 					break;
 				}
 			}
-			if (insertIndex >= 0) nodeLines.splice(insertIndex + 1, 0, `${topLevelIndent}grpc-opts:`, `${topLevelIndent}  grpc-user-agent: ${gRPCUserAgentYAML}`);
+			if (insertIndex >= 0) nodeLines.splice(insertIndex + 1, 0, `${topLevelIndentStr}grpc-opts:`, `${topLevelIndentStr}  grpc-user-agent: ${gRPCUserAgentYAML}`);
 			return nodeLines;
 		}
 		const grpcLine = nodeLines[grpcOptsIndex];
