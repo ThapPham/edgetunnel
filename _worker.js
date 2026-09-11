@@ -1,7 +1,7 @@
 ﻿const Version = '2026-09-04 16:24:13';
 let config_JSON, cacheSocks5Whitelist = null, debugLogPrint = false;
 let socks5Whitelist = ['*tapecontent.net', '*cloudatacdn.com', '*loadshare.org', '*cdn-centaurus.com', 'scholar.google.com'];
-const pagesStaticPage = 'https://edt-pages.github.io';
+const pagesStaticPage = 'https://thappham.github.io/edgetunnel-pages';
 // ============================== Global Constants and Utility Functions ==============================
 const wsEarlyDataMaxBytes = 8 * 1024, wsEarlyDataMaxHeaderLength = Math.ceil(wsEarlyDataMaxBytes * 4 / 3) + 4;
 const uplinkPackTargetBytes = 20 * 1024, uplinkQueueMaxBytes = 16 * 1024 * 1024, uplinkQueueMaxEntries = 4096;
