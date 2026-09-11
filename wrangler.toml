@@ -1,8 +1,8 @@
-name = 'kt911'
+name = 'edgetunnel'
 main = "_worker.js"
 compatibility_date = "2025-11-04"
 keep_vars = true
 
 [[kv_namespaces]]
-binding = "KV"        #KV绑定名默认不可修改
-id = "86b2660f2e2846c8afd6be2cfd5bccda"        #KV数据库id
+binding = "KV"        # KV binding name, must not be changed
+id = "cf69fe7bcc854241b93da52a2c054069"        # KV namespace ID
